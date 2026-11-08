@@ -7,7 +7,7 @@
       content="width=device-width,initial-scale=1,viewport-fit=cover"
     />
     <title>Nomad — An island to wander</title>
-    <link rel="stylesheet" href="./styles.css?v=963adbca731c" />
+    <link rel="stylesheet" href="./styles.css?v=7db30117e484" />
   </head>
   <body>
     <header>
@@ -29,7 +29,7 @@
         <button id="enter" disabled>SHAPING THE ISLAND <span>↗</span></button>
         <div class="hint">CLICK TO EXPLORE · HEADPHONES OPTIONAL</div>
         <button id="use-touch" type="button">Use touch controls</button>
-        <div class="build-label">EXPLORERS · 07</div>
+        <div class="build-label">JUMP IN · 08</div>
         <div id="error" role="status"></div>
       </div>
     </section>
@@ -50,6 +50,9 @@
         <div id="stick"></div>
         <span>MOVE</span>
       </div>
+      <button id="jump" type="button" aria-label="Jump">
+        <span>↑</span>JUMP
+      </button>
     </div>
     <button id="pause" aria-label="Pause exploration">
       Ⅱ <span>PAUSE</span>
@@ -57,7 +60,8 @@
     <footer>
       <div class="keys">
         <span><b>W A S D</b> Walk</span><span><b>MOUSE</b> Look</span
-        ><span><b>SHIFT</b> Run</span><span><b>ESC</b> Pause</span>
+        ><span><b>SHIFT</b> Run</span><span><b>SPACE</b> Jump</span
+        ><span><b>ESC</b> Pause</span>
       </div>
       <div class="location">
         AMBER ISLAND<small
@@ -66,6 +70,6 @@
         >
       </div>
     </footer>
-    <script type="module" src="./main.js?v=2540f8f9eb83"></script>
+    <script type="module" src="./main.js?v=d340defc3afe"></script>
   </body>
 </html>

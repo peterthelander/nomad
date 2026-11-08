@@ -59,6 +59,14 @@ test(
     assert.equal(seen.player.id, wa.id);
     b.ws.send(move(170));
     assert.equal((await a.next()).player.x, 170);
+    a.ws.send(
+      JSON.stringify({ type: 'move', x: 165, y: 31.5, z: 180, yaw: 0.5 }),
+    );
+    assert.equal(
+      (await b.next()).player.y,
+      31.5,
+      'Jump height reaches other players',
+    );
     a.ws.send('ping');
     assert.equal(await a.next(), 'pong');
     // A late joiner receives the current state, not only subsequent movement.

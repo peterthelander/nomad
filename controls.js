@@ -9,6 +9,7 @@ export function createControls(canvas, onLook) {
   const stick = document.querySelector('#stick');
   const lookZone = document.querySelector('#look-zone');
   const keys = new Set();
+  let jumpRequested = false;
   let playing = false,
     movePointer = null,
     lookPointer = null;
@@ -19,6 +20,7 @@ export function createControls(canvas, onLook) {
 
   function reset() {
     keys.clear();
+    jumpRequested = false;
     forward = side = 0;
     movePointer = lookPointer = null;
     stick.style.transform = 'translate(0px, 0px)';
@@ -72,6 +74,11 @@ export function createControls(canvas, onLook) {
         'Mouse capture was blocked. Open this page in a browser tab and click again.';
     }
   });
+  document.querySelector('#jump').addEventListener('pointerdown', (e) => {
+    if (!playing) return;
+    e.preventDefault();
+    jumpRequested = true;
+  });
   document.querySelector('#pause').addEventListener('click', pause);
   document.addEventListener('pointerlockchange', () => {
     if (!touchMode) setPlaying(document.pointerLockElement === canvas);
@@ -86,6 +93,11 @@ export function createControls(canvas, onLook) {
       onLook(e.movementX * 0.002, e.movementY * 0.002);
   });
   addEventListener('keydown', (e) => {
+    if (playing && e.code === 'Space') {
+      e.preventDefault();
+      if (!e.repeat) jumpRequested = true;
+      return;
+    }
     if (e.code === 'Escape' && playing) {
       pause();
       return;
@@ -171,6 +183,11 @@ export function createControls(canvas, onLook) {
   for (const event of ['pointerup', 'pointercancel', 'lostpointercapture'])
     lookZone.addEventListener(event, releaseLook);
   return {
+    consumeJump() {
+      const requested = jumpRequested;
+      jumpRequested = false;
+      return requested;
+    },
     get playing() {
       return playing;
     },

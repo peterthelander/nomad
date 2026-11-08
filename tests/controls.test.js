@@ -25,7 +25,8 @@ test('a hybrid device can switch between mouse lock and simultaneous thumb contr
   doc.body = { classList: { toggle() {} } };
   globalThis.document = doc;
   globalThis.matchMedia = () => ({ matches: false });
-  globalThis.addEventListener = () => {};
+  const win = new Target();
+  globalThis.addEventListener = win.addEventListener.bind(win);
   let locks = 0,
     look = 0;
   const canvas = new Target();
@@ -38,6 +39,16 @@ test('a hybrid device can switch between mouse lock and simultaneous thumb contr
   doc.pointerLockElement = canvas;
   await doc.fire('pointerlockchange');
   assert.equal(controls.playing, true);
+  await win.fire('keydown', { code: 'Space', repeat: false });
+  assert.equal(controls.consumeJump(), true);
+  assert.equal(controls.consumeJump(), false);
+  await win.fire('keydown', { code: 'Space', repeat: true });
+  assert.equal(
+    controls.consumeJump(),
+    false,
+    'Holding Space does not repeat jumps',
+  );
+
   doc.pointerLockElement = null;
   await doc.fire('pointerlockchange');
   assert.equal(controls.playing, false);
@@ -61,6 +72,13 @@ test('a hybrid device can switch between mouse lock and simultaneous thumb contr
     clientY: 100,
   });
   assert.ok(controls.movement.forward > 0.9);
+  await nodes['#jump'].fire('pointerdown');
+  assert.equal(controls.consumeJump(), true, 'Touch button requests a jump');
+  assert.ok(
+    controls.movement.forward > 0.9,
+    'Jumping does not interrupt joystick',
+  );
+
   assert.ok(look > 0);
   await nodes['#joystick'].fire('pointercancel', { pointerId: 1 });
   assert.equal(controls.movement.forward, 0);

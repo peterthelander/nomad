@@ -27,6 +27,7 @@ Open http://localhost:8765 in a browser. Internet access is needed to load Three
 - Tap **Enter the wilderness** to start.
 - Drag the left joystick to walk; push farther to move faster.
 - Drag anywhere outside the joystick and buttons to look around. Both thumbs work at once.
+- Tap **Jump** at the lower right to jump.
 - Tap **Pause** to open the menu. Landscape orientation gives you more room.
 
 ### Desktop
@@ -35,6 +36,7 @@ Open http://localhost:8765 in a browser. Internet access is needed to load Three
 - **WASD** or **arrow keys** to walk.
 - **Mouse** to look.
 - **Shift** to run.
+- **Space** to jump (press again after landing).
 - **Esc** to pause and release the mouse.
 
 Movement follows the terrain height and stops at the shoreline and world boundary.
@@ -47,6 +49,7 @@ Movement follows the terrain height and stops at the shoreline and world boundar
 - `world.js` — deterministic terrain, trees, rocks, and coastal height texture.
 - `atmosphere.js` — gradient sky, procedural clouds, animated ocean, and sunlight/shadows.
 - `controls.js` — desktop and multi-touch input.
+- `movement.js` — jump gravity and terrain landing.
 - `multiplayer.js` — shared rooms and connection handling.
 - `avatars.js` — detailed procedural explorers and articulated walk animation.
 - `config.js` — public multiplayer endpoint (no credentials).

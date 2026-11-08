@@ -1,8 +1,9 @@
+import { createJumpMotion } from './movement.js?v=3137db7bf9ca';
 import { createAtmosphere } from './atmosphere.js?v=158cea607e0f';
 import { createWorld } from './world.js?v=a35ed567c5f4';
 import { createMultiplayer } from './multiplayer.js?v=b93a4982ab33';
 import { MULTIPLAYER_URL } from './config.js?v=0d93ac67fb24';
-import { createControls } from './controls.js?v=b96b22685cfc';
+import { createControls } from './controls.js?v=fbfd284f79ab';
 const enter = document.querySelector('#enter'),
   error = document.querySelector('#error');
 try {
@@ -58,6 +59,7 @@ try {
   });
   enter.disabled = false;
   enter.innerHTML = 'ENTER THE WILDERNESS <span>↗</span>';
+  const jumpMotion = createJumpMotion();
   const clock = new THREE.Clock();
   let elapsed = 0;
   const positionLabel = document.querySelector('#position'),
@@ -86,8 +88,12 @@ try {
         camera.position.x = nx;
         camera.position.z = nz;
       }
-      camera.position.y = ground(camera.position.x, camera.position.z) + EYE;
     }
+    camera.position.y = jumpMotion.update(
+      dt,
+      ground(camera.position.x, camera.position.z) + EYE,
+      controls.consumeJump() && controls.playing,
+    );
     atmosphere.update(elapsed);
     positionLabel.textContent = `ELEV. ${Math.round(camera.position.y - EYE)} M`;
     const degrees =

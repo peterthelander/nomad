@@ -474,3 +474,46 @@ canvas {
     text-shadow: 0 1px 12px #15363b80;
   }
 }
+
+#jump {
+  position: absolute;
+  z-index: 1;
+  right: max(28px, env(safe-area-inset-right));
+  bottom: max(80px, calc(env(safe-area-inset-bottom) + 48px));
+  width: 108px;
+  height: 108px;
+  border: 1px solid #fff6df80;
+  border-radius: 50%;
+  background: #223d3b45;
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#jump span {
+  font-size: 30px;
+  line-height: 1;
+}
+#jump:active {
+  background: #fff6df45;
+}
+#look-zone span {
+  bottom: max(210px, calc(env(safe-area-inset-bottom) + 180px));
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  #jump {
+    width: 88px;
+    height: 88px;
+    bottom: 61px;
+  }
+  #look-zone span {
+    bottom: 160px;
+  }
+}
