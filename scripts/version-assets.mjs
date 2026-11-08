@@ -1,16 +1,39 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-const hash = file => createHash('sha256').update(readFileSync(file)).digest('hex').slice(0,12);
-let main = readFileSync('main.js','utf8');
-for (const file of ['controls.js','multiplayer.js','config.js']) {
-  const pattern = new RegExp(`'\\./${file.replace('.', '\\.')}([^']*)?'`, 'g');
-  main = main.replace(pattern, `'./${file}?v=${hash(file)}'`);
+import { dirname, resolve, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
+const hashes = new Map();
+const visiting = new Set();
+function versionModule(file) {
+  if (hashes.has(file)) return hashes.get(file);
+  if (visiting.has(file)) throw new Error(`Circular browser import: ${file}`);
+  visiting.add(file);
+  const path = resolve(root, file);
+  const original = readFileSync(path, 'utf8');
+  // Version dependencies before their importer so a nested change reaches index.html.
+  const updated = original.replace(
+    /(from\s+['"])(\.\/[^'"?]+\.js)(?:\?v=[^'"]*)?(['"])/g,
+    (_, prefix, dependency, quote) => {
+      const dependencyFile = relative(root, resolve(dirname(path), dependency));
+      return `${prefix}${dependency}?v=${versionModule(dependencyFile)}${quote}`;
+    },
+  );
+  if (updated !== original) writeFileSync(path, updated);
+  const hash = createHash('sha256').update(updated).digest('hex').slice(0, 12);
+  hashes.set(file, hash);
+  visiting.delete(file);
+  return hash;
 }
-writeFileSync('main.js', main);
-let html = readFileSync('index.html','utf8');
-for (const file of ['main.js','styles.css']) {
-  const pattern = new RegExp(`\\./${file.replace('.', '\\.')}[^" ]*`, 'g');
-  html = html.replace(pattern, `./${file}?v=${hash(file)}`);
+
+let html = readFileSync(resolve(root, 'index.html'), 'utf8');
+for (const file of ['main.js', 'styles.css']) {
+  const hash = versionModule(file);
+  html = html.replace(
+    new RegExp(`\\./${file.replace('.', '\\.')}[^" ]*`, 'g'),
+    `./${file}?v=${hash}`,
+  );
 }
-writeFileSync('index.html', html);
-console.log('Versioned all local browser assets.');
+writeFileSync(resolve(root, 'index.html'), html);
+console.log('Versioned browser assets and their dependencies.');

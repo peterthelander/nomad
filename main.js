@@ -1,34 +1,101 @@
-import { createMultiplayer } from './multiplayer.js?v=104f4e613f27';
-import { MULTIPLAYER_URL } from './config.js?v=657f741fd080';
-import { createControls } from './controls.js?v=cef120e16e2e';
-const enter=document.querySelector('#enter'), error=document.querySelector('#error');
+import { createWorld } from './world.js?v=0315ec5a1434';
+import { createMultiplayer } from './multiplayer.js?v=e358d27081fb';
+import { MULTIPLAYER_URL } from './config.js?v=0d93ac67fb24';
+import { createControls } from './controls.js?v=a282344236b9';
+const enter = document.querySelector('#enter'),
+  error = document.querySelector('#error');
 try {
-const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');
-const scene=new THREE.Scene();scene.background=new THREE.Color('#b5ced0');scene.fog=new THREE.FogExp2('#b5ced0',.0025);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;document.body.prepend(renderer.domElement);
-const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,1800);camera.rotation.order='YXZ';scene.add(new THREE.HemisphereLight(0xd4e9ed,0x6e7050,2.3));const sun=new THREE.DirectionalLight(0xffdfad,3);sun.position.set(-180,240,80);scene.add(sun);
-// Seeded value noise keeps terrain, decoration and collision reproducible.
-function hash(x,z){let n=Math.sin(x*127.1+z*311.7+47.3)*43758.5453;return n-Math.floor(n)}
-function noise(x,z){const a=Math.floor(x),b=Math.floor(z);let u=x-a,v=z-b;u=u*u*(3-2*u);v=v*v*(3-2*v);return THREE.MathUtils.lerp(THREE.MathUtils.lerp(hash(a,b),hash(a+1,b),u),THREE.MathUtils.lerp(hash(a,b+1),hash(a+1,b+1),u),v)}
-const SIZE=1000,SEG=240,STEP=SIZE/SEG,SEA=0,EYE=2.2;
-function height(x,z){const r=Math.hypot(x/440,z/400);return 9+noise(x*.004,z*.004)*57+noise(x*.012,z*.012)*22+noise(x*.034,z*.034)*4-65*Math.pow(r,3.1)+22*Math.exp(-((x+90)**2+(z+100)**2)/19000)}
-const geo=new THREE.PlaneGeometry(SIZE,SIZE,SEG,SEG);geo.rotateX(-Math.PI/2);const pos=geo.attributes.position,heights=new Float32Array(pos.count),colors=[];const color=new THREE.Color();
-for(let i=0;i<pos.count;i++){let x=pos.getX(i),z=pos.getZ(i),h=height(x,z);heights[i]=h;pos.setY(i,h);if(h<3.5)color.set('#c9b98a');else if(h<36)color.set('#7b9163');else if(h<58)color.set('#8a9278');else if(h<72)color.set('#9c9e91');else color.set('#e3e1ce');color.multiplyScalar(.91+hash(x,z)*.15);colors.push(color.r,color.g,color.b)}geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.computeVertexNormals();scene.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true})));
-// Sample the actual mesh triangles, so the eye follows the rendered surface.
-function ground(x,z){let gx=THREE.MathUtils.clamp((x+SIZE/2)/STEP,0,SEG-.00001),gz=THREE.MathUtils.clamp((z+SIZE/2)/STEP,0,SEG-.00001),ix=Math.floor(gx),iz=Math.floor(gz),u=gx-ix,v=gz-iz;let a=heights[iz*(SEG+1)+ix],b=heights[(iz+1)*(SEG+1)+ix],c=heights[(iz+1)*(SEG+1)+ix+1],d=heights[iz*(SEG+1)+ix+1];return u+v<=1?a+(d-a)*u+(b-a)*v:c+(b-c)*(1-u)+(d-c)*(1-v)}
-const water=new THREE.Mesh(new THREE.PlaneGeometry(5000,5000),new THREE.MeshStandardMaterial({color:'#558f96',transparent:true,opacity:.86,roughness:.36,metalness:.25}));water.rotation.x=-Math.PI/2;water.position.y=SEA;scene.add(water);
-const trunkGeo=new THREE.CylinderGeometry(.35,.65,5,5),leafGeo=new THREE.ConeGeometry(4,10,6);const trunkMat=new THREE.MeshStandardMaterial({color:'#655e46',flatShading:true}),leafMat=new THREE.MeshStandardMaterial({color:'#3f6655',flatShading:true});const trunks=new THREE.InstancedMesh(trunkGeo,trunkMat,650),leaves=new THREE.InstancedMesh(leafGeo,leafMat,650),rocks=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),new THREE.MeshStandardMaterial({color:'#9b9e8b',flatShading:true}),220);let ti=0,ri=0;const dummy=new THREE.Object3D();
-for(let i=0;i<5000 && (ti<650||ri<220);i++){const x=(hash(i,1)-.5)*850,z=(hash(i,2)-.5)*850,h=ground(x,z),slope=Math.max(Math.abs(ground(x+3,z)-h),Math.abs(ground(x,z+3)-h));if(h>6&&h<57&&slope<2&&ti<650){const s=.6+hash(i,3)*.9;dummy.position.set(x,h+2.5*s,z);dummy.rotation.set(0,hash(i,4)*6.28,0);dummy.scale.setScalar(s);dummy.updateMatrix();trunks.setMatrixAt(ti,dummy.matrix);dummy.position.y=h+8*s;dummy.updateMatrix();leaves.setMatrixAt(ti++,dummy.matrix)}else if(h>3&&h<76&&ri<220){const s=1+hash(i,5)*2.5;dummy.position.set(x,h+.4*s,z);dummy.rotation.set(hash(i,6),hash(i,7)*6,0);dummy.scale.set(s,s*.7,s*.85);dummy.updateMatrix();rocks.setMatrixAt(ri++,dummy.matrix)}}trunks.count=leaves.count=ti;rocks.count=ri;scene.add(trunks,leaves,rocks);
-// Warm distant sun; no image assets or texture downloads.
-const sunDisc=new THREE.Mesh(new THREE.SphereGeometry(22,24,16),new THREE.MeshBasicMaterial({color:'#fff0ca',fog:false}));sunDisc.position.set(-650,270,-750);scene.add(sunDisc);
-camera.position.set(165,ground(165,180)+EYE,180);camera.rotation.set(-.03,.62,0);
-const controls=createControls(renderer.domElement,(dx,dy)=>{
-  camera.rotation.y-=dx;
-  camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x-dy,-1.48,1.48);
-});
-const multiplayer=createMultiplayer({THREE,scene,camera,ground,endpoint:MULTIPLAYER_URL});
-enter.disabled=false;enter.innerHTML='ENTER THE WILDERNESS <span>↗</span>';
-const clock=new THREE.Clock();let elapsed=0;const positionLabel=document.querySelector('#position'),compass=document.querySelector('#compass');
-renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;if(controls.playing){const {forward,side,running}=controls.movement;const len=Math.max(1,Math.hypot(forward,side)),speed=(running?20:10)*dt/len,yaw=camera.rotation.y;const nx=THREE.MathUtils.clamp(camera.position.x+(side*Math.cos(yaw)-forward*Math.sin(yaw))*speed,-470,470),nz=THREE.MathUtils.clamp(camera.position.z+(-side*Math.sin(yaw)-forward*Math.cos(yaw))*speed,-470,470);if(ground(nx,nz)>1){camera.position.x=nx;camera.position.z=nz}camera.position.y=ground(camera.position.x,camera.position.z)+EYE}water.position.y=Math.sin(elapsed*.35)*.06;positionLabel.textContent=`ELEV. ${Math.round(camera.position.y-EYE)} M`;const degrees=((THREE.MathUtils.radToDeg(-camera.rotation.y)%360)+360)%360;compass.textContent=`${['N','NE','E','SE','S','SW','W','NW'][Math.round(degrees/45)%8]}   ·   ${Math.round(degrees).toString().padStart(3,'0')}°`;multiplayer.update(dt,controls.playing);renderer.render(scene,camera)});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-}catch(e){console.error(e);enter.textContent='UNABLE TO START';error.textContent='The 3D scene could not load. Check your internet connection and WebGL support, then refresh.'}
+  const THREE = await import(
+    'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js'
+  );
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#b5ced0');
+  scene.fog = new THREE.FogExp2('#b5ced0', 0.0025);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  document.body.prepend(renderer.domElement);
+  const camera = new THREE.PerspectiveCamera(
+    65,
+    innerWidth / innerHeight,
+    0.1,
+    1800,
+  );
+  camera.rotation.order = 'YXZ';
+  scene.add(new THREE.HemisphereLight(0xd4e9ed, 0x6e7050, 2.3));
+  const sun = new THREE.DirectionalLight(0xffdfad, 3);
+  sun.position.set(-180, 240, 80);
+  scene.add(sun);
+  const EYE = 2.2;
+  const { ground, water } = createWorld(THREE, scene);
+  camera.position.set(165, ground(165, 180) + EYE, 180);
+  camera.rotation.set(-0.03, 0.62, 0);
+  const controls = createControls(renderer.domElement, (dx, dy) => {
+    camera.rotation.y -= dx;
+    camera.rotation.x = THREE.MathUtils.clamp(
+      camera.rotation.x - dy,
+      -1.48,
+      1.48,
+    );
+  });
+  const multiplayer = createMultiplayer({
+    THREE,
+    scene,
+    camera,
+    ground,
+    endpoint: MULTIPLAYER_URL,
+  });
+  enter.disabled = false;
+  enter.innerHTML = 'ENTER THE WILDERNESS <span>↗</span>';
+  const clock = new THREE.Clock();
+  let elapsed = 0;
+  const positionLabel = document.querySelector('#position'),
+    compass = document.querySelector('#compass');
+  renderer.setAnimationLoop(() => {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    elapsed += dt;
+    if (controls.playing) {
+      const { forward, side, running } = controls.movement;
+      const len = Math.max(1, Math.hypot(forward, side)),
+        speed = ((running ? 20 : 10) * dt) / len,
+        yaw = camera.rotation.y;
+      const nx = THREE.MathUtils.clamp(
+          camera.position.x +
+            (side * Math.cos(yaw) - forward * Math.sin(yaw)) * speed,
+          -470,
+          470,
+        ),
+        nz = THREE.MathUtils.clamp(
+          camera.position.z +
+            (-side * Math.sin(yaw) - forward * Math.cos(yaw)) * speed,
+          -470,
+          470,
+        );
+      if (ground(nx, nz) > 1) {
+        camera.position.x = nx;
+        camera.position.z = nz;
+      }
+      camera.position.y = ground(camera.position.x, camera.position.z) + EYE;
+    }
+    water.position.y = Math.sin(elapsed * 0.35) * 0.06;
+    positionLabel.textContent = `ELEV. ${Math.round(camera.position.y - EYE)} M`;
+    const degrees =
+      ((THREE.MathUtils.radToDeg(-camera.rotation.y) % 360) + 360) % 360;
+    compass.textContent = `${['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(degrees / 45) % 8]}   ·   ${Math.round(degrees).toString().padStart(3, '0')}°`;
+    multiplayer.update(dt, controls.playing);
+    renderer.render(scene, camera);
+  });
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+} catch (e) {
+  console.error(e);
+  enter.textContent = 'UNABLE TO START';
+  error.textContent =
+    'The 3D scene could not load. Check your internet connection and WebGL support, then refresh.';
+}

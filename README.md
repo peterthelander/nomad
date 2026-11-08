@@ -43,7 +43,8 @@ Movement follows the terrain height and stops at the shoreline and world boundar
 
 - `index.html` — page structure and overlay.
 - `styles.css` — styling.
-- `main.js` — procedural terrain, decoration, rendering, and movement.
+- `main.js` — rendering, movement, and application setup.
+- `world.js` — deterministic terrain, ocean, trees, and rocks.
 - `controls.js` — desktop and multi-touch input.
 - `multiplayer.js` — shared rooms, avatars, and connection handling.
 - `config.js` — public multiplayer endpoint (no credentials).
@@ -88,7 +89,7 @@ In a second terminal:
 NOMAD_TEST_URL=http://localhost:8787 npm test
 ```
 
-Tests exercise real WebSocket connections, room isolation, late joining, leaving, capacity, invalid messages, and desktop/touch input. Without `NOMAD_TEST_URL`, network integration tests are skipped.
+Tests cover stalled-connection recovery, idle bandwidth, asset versions, desktop/touch input, and real WebSocket room isolation, late joining, leaving, capacity, and invalid messages. Without `NOMAD_TEST_URL`, network integration tests are skipped.
 
 To use the local backend in the browser, temporarily set `MULTIPLAYER_URL` to `http://localhost:8787`, version the assets, and serve the game at `http://localhost:8765`. Restore the production endpoint before pushing. A different frontend origin must be added explicitly to `ALLOWED_ORIGINS` in the Worker configuration.
 
