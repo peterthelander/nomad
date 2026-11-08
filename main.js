@@ -1,3 +1,5 @@
+import { createMultiplayer } from './multiplayer.js?v=104f4e613f27';
+import { MULTIPLAYER_URL } from './config.js?v=b9add7126ada';
 import { createControls } from './controls.js?v=cef120e16e2e';
 const enter=document.querySelector('#enter'), error=document.querySelector('#error');
 try {
@@ -24,8 +26,9 @@ const controls=createControls(renderer.domElement,(dx,dy)=>{
   camera.rotation.y-=dx;
   camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x-dy,-1.48,1.48);
 });
+const multiplayer=createMultiplayer({THREE,scene,camera,ground,endpoint:MULTIPLAYER_URL});
 enter.disabled=false;enter.innerHTML='ENTER THE WILDERNESS <span>↗</span>';
 const clock=new THREE.Clock();let elapsed=0;const positionLabel=document.querySelector('#position'),compass=document.querySelector('#compass');
-renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;if(controls.playing){const {forward,side,running}=controls.movement;const len=Math.max(1,Math.hypot(forward,side)),speed=(running?20:10)*dt/len,yaw=camera.rotation.y;const nx=THREE.MathUtils.clamp(camera.position.x+(side*Math.cos(yaw)-forward*Math.sin(yaw))*speed,-470,470),nz=THREE.MathUtils.clamp(camera.position.z+(-side*Math.sin(yaw)-forward*Math.cos(yaw))*speed,-470,470);if(ground(nx,nz)>1){camera.position.x=nx;camera.position.z=nz}camera.position.y=ground(camera.position.x,camera.position.z)+EYE}water.position.y=Math.sin(elapsed*.35)*.06;positionLabel.textContent=`ELEV. ${Math.round(camera.position.y-EYE)} M`;const degrees=((THREE.MathUtils.radToDeg(-camera.rotation.y)%360)+360)%360;compass.textContent=`${['N','NE','E','SE','S','SW','W','NW'][Math.round(degrees/45)%8]}   ·   ${Math.round(degrees).toString().padStart(3,'0')}°`;renderer.render(scene,camera)});
+renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;if(controls.playing){const {forward,side,running}=controls.movement;const len=Math.max(1,Math.hypot(forward,side)),speed=(running?20:10)*dt/len,yaw=camera.rotation.y;const nx=THREE.MathUtils.clamp(camera.position.x+(side*Math.cos(yaw)-forward*Math.sin(yaw))*speed,-470,470),nz=THREE.MathUtils.clamp(camera.position.z+(-side*Math.sin(yaw)-forward*Math.cos(yaw))*speed,-470,470);if(ground(nx,nz)>1){camera.position.x=nx;camera.position.z=nz}camera.position.y=ground(camera.position.x,camera.position.z)+EYE}water.position.y=Math.sin(elapsed*.35)*.06;positionLabel.textContent=`ELEV. ${Math.round(camera.position.y-EYE)} M`;const degrees=((THREE.MathUtils.radToDeg(-camera.rotation.y)%360)+360)%360;compass.textContent=`${['N','NE','E','SE','S','SW','W','NW'][Math.round(degrees/45)%8]}   ·   ${Math.round(degrees).toString().padStart(3,'0')}°`;multiplayer.update(dt,controls.playing);renderer.render(scene,camera)});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 }catch(e){console.error(e);enter.textContent='UNABLE TO START';error.textContent='The 3D scene could not load. Check your internet connection and WebGL support, then refresh.'}

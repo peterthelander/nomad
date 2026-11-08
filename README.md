@@ -18,7 +18,7 @@ From this folder, start a static server:
 python3 -m http.server 8765
 ```
 
-Open http://localhost:8765 in a browser. Internet access is needed to load Three.js from its pinned CDN URL; no API keys, build step, or backend are required.
+Open http://localhost:8765 in a browser. Internet access is needed to load Three.js from its pinned CDN URL; no build step or player API keys are required. Solo exploration works even when the multiplayer service is unavailable.
 
 ## Controls
 
@@ -45,5 +45,51 @@ Movement follows the terrain height and stops at the shoreline and world boundar
 - `styles.css` — styling.
 - `main.js` — procedural terrain, decoration, rendering, and movement.
 - `controls.js` — desktop and multi-touch input.
+- `multiplayer.js` — shared rooms, avatars, and connection handling.
+- `config.js` — public multiplayer endpoint (no credentials).
+- `server/` — Cloudflare Worker and per-world Durable Object.
+- `wrangler.jsonc` — deployment configuration.
+
+## Multiplayer service
+
+The client joins `amber-island` by default. **Invite friends** copies the current room link; **New island** creates a new room link. Rooms support up to 20 connections, with anonymous avatars and no sign-up. Desktop controls are unchanged. On phones, pause to access invitation buttons.
+
+Room state is temporary: disconnecting removes your avatar, and empty rooms retain no player progress. All room links use the same deterministic terrain. Room links are invitations, not authenticated private spaces. This is a casual exploration prototype, not a cheat-resistant simulation.
+
+### Deploy to your Cloudflare account
+
+Use a current Node.js LTS release:
+
+```sh
+npm ci
+npx wrangler login
+npm run deploy:server
+```
+
+The configuration uses SQLite-backed Durable Objects, supported on the Workers Free plan. No paid plan or custom domain is required. Free usage limits still apply; monitor them in the Cloudflare dashboard.
+
+Set `MULTIPLAYER_URL` in `config.js` to the HTTPS `workers.dev` URL returned by deployment. No secret belongs in that file. Then run:
+
+```sh
+npm run version:assets
+```
+
+Commit and push the client files to `main` to update GitHub Pages. Version assets after changes to any browser JavaScript or CSS so devices receive the new files.
+
+### Test the backend locally
+
+```sh
+npm run dev:server
+```
+
+In a second terminal:
+
+```sh
+NOMAD_TEST_URL=http://localhost:8787 npm test
+```
+
+Tests exercise real WebSocket connections, room isolation, late joining, leaving, capacity, invalid messages, and desktop/touch input. Without `NOMAD_TEST_URL`, network integration tests are skipped.
+
+To use the local backend in the browser, temporarily set `MULTIPLAYER_URL` to `http://localhost:8787`, version the assets, and serve the game at `http://localhost:8765`. Restore the production endpoint before pushing. A different frontend origin must be added explicitly to `ALLOWED_ORIGINS` in the Worker configuration.
 
 Requires a browser with WebGL. Desktop mouse controls use Pointer Lock; mobile controls use touch gestures.
