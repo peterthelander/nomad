@@ -1,7 +1,6 @@
 // Input is independent of rendering: touch movement and keyboard movement share axes.
 export function createControls(canvas, onLook) {
-  const touchMode = matchMedia('(pointer: coarse)').matches ||
-    (navigator.maxTouchPoints > 0 && !matchMedia('(any-pointer: fine)').matches);
+  let touchMode = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
   document.body.classList.toggle('touch-mode', touchMode);
   const enter = document.querySelector('#enter');
   const error = document.querySelector('#error');
@@ -28,9 +27,21 @@ export function createControls(canvas, onLook) {
     if (document.pointerLockElement === canvas) document.exitPointerLock();
     setPlaying(false);
   }
-  if (touchMode) {
+  function useTouchControls() {
+    touchMode = true;
+    document.body.classList.add('touch-mode');
+    error.textContent = '';
     document.querySelector('.hint').textContent = 'LEFT THUMB TO MOVE · RIGHT THUMB TO LOOK';
   }
+  if (touchMode) useTouchControls();
+  // Detect the actual gesture too: some mobile browser modes report mouse capabilities.
+  enter.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') useTouchControls();
+  });
+  document.querySelector('#use-touch').addEventListener('click', () => {
+    useTouchControls();
+    setPlaying(true);
+  });
   enter.addEventListener('click', async () => {
     error.textContent = '';
     if (touchMode) { setPlaying(true); return; }

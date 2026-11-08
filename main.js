@@ -1,4 +1,4 @@
-import { createControls } from './controls.js';
+import { createControls } from './controls.js?v=0f9b61a83414';
 const enter=document.querySelector('#enter'), error=document.querySelector('#error');
 try {
 const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');
