@@ -2,7 +2,15 @@
 
 A first-person procedural island explorer built with Three.js. Walk through rolling hills, low-poly forests, rocky peaks, and a quiet coastline.
 
-## Run locally
+## Play online
+
+**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/)**
+
+No download or installation needed. Open the link in a desktop browser and click **Enter the wilderness**.
+
+The site is hosted on GitHub Pages and automatically deploys updates from the `main` branch.
+
+## Run locally (optional)
 
 From this folder, start a static server:
 
