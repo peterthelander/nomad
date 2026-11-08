@@ -1,3 +1,4 @@
+import { createControls } from './controls.js';
 const enter=document.querySelector('#enter'), error=document.querySelector('#error');
 try {
 const THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');
@@ -19,12 +20,12 @@ for(let i=0;i<5000 && (ti<650||ri<220);i++){const x=(hash(i,1)-.5)*850,z=(hash(i
 // Warm distant sun; no image assets or texture downloads.
 const sunDisc=new THREE.Mesh(new THREE.SphereGeometry(22,24,16),new THREE.MeshBasicMaterial({color:'#fff0ca',fog:false}));sunDisc.position.set(-650,270,-750);scene.add(sunDisc);
 camera.position.set(165,ground(165,180)+EYE,180);camera.rotation.set(-.03,.62,0);
-let locked=false;const keys=new Set();enter.disabled=false;enter.innerHTML='ENTER THE WILDERNESS <span>↗</span>';
-enter.addEventListener('click',async()=>{try{await renderer.domElement.requestPointerLock()}catch(e){error.textContent='Mouse capture was blocked. Open this page in a desktop browser tab and click again.'}});
-document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;document.body.classList.toggle('playing',locked);keys.clear();if(!locked)enter.innerHTML='CONTINUE EXPLORING <span>↗</span>'});document.addEventListener('pointerlockerror',()=>{error.textContent='Mouse capture is unavailable here. Open the page in a desktop browser tab.'});
-document.addEventListener('mousemove',e=>{if(!locked)return;camera.rotation.y-=e.movementX*.002;camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x-e.movementY*.002,-1.48,1.48)});
-addEventListener('keydown',e=>{if(locked&&['KeyW','KeyA','KeyS','KeyD','ShiftLeft','ShiftRight','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)){e.preventDefault();keys.add(e.code)}});addEventListener('keyup',e=>keys.delete(e.code));addEventListener('blur',()=>keys.clear());
+const controls=createControls(renderer.domElement,(dx,dy)=>{
+  camera.rotation.y-=dx;
+  camera.rotation.x=THREE.MathUtils.clamp(camera.rotation.x-dy,-1.48,1.48);
+});
+enter.disabled=false;enter.innerHTML='ENTER THE WILDERNESS <span>↗</span>';
 const clock=new THREE.Clock();let elapsed=0;const positionLabel=document.querySelector('#position'),compass=document.querySelector('#compass');
-renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;if(locked){let forward=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown')),side=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));const len=Math.hypot(forward,side)||1,speed=(keys.has('ShiftLeft')||keys.has('ShiftRight')?20:10)*dt/len,yaw=camera.rotation.y;const nx=THREE.MathUtils.clamp(camera.position.x+(side*Math.cos(yaw)-forward*Math.sin(yaw))*speed,-470,470),nz=THREE.MathUtils.clamp(camera.position.z+(-side*Math.sin(yaw)-forward*Math.cos(yaw))*speed,-470,470);if(ground(nx,nz)>1){camera.position.x=nx;camera.position.z=nz}camera.position.y=ground(camera.position.x,camera.position.z)+EYE}water.position.y=Math.sin(elapsed*.35)*.06;positionLabel.textContent=`ELEV. ${Math.round(camera.position.y-EYE)} M`;const degrees=((THREE.MathUtils.radToDeg(-camera.rotation.y)%360)+360)%360;compass.textContent=`${['N','NE','E','SE','S','SW','W','NW'][Math.round(degrees/45)%8]}   ·   ${Math.round(degrees).toString().padStart(3,'0')}°`;renderer.render(scene,camera)});
+renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);elapsed+=dt;if(controls.playing){const {forward,side,running}=controls.movement;const len=Math.max(1,Math.hypot(forward,side)),speed=(running?20:10)*dt/len,yaw=camera.rotation.y;const nx=THREE.MathUtils.clamp(camera.position.x+(side*Math.cos(yaw)-forward*Math.sin(yaw))*speed,-470,470),nz=THREE.MathUtils.clamp(camera.position.z+(-side*Math.sin(yaw)-forward*Math.cos(yaw))*speed,-470,470);if(ground(nx,nz)>1){camera.position.x=nx;camera.position.z=nz}camera.position.y=ground(camera.position.x,camera.position.z)+EYE}water.position.y=Math.sin(elapsed*.35)*.06;positionLabel.textContent=`ELEV. ${Math.round(camera.position.y-EYE)} M`;const degrees=((THREE.MathUtils.radToDeg(-camera.rotation.y)%360)+360)%360;compass.textContent=`${['N','NE','E','SE','S','SW','W','NW'][Math.round(degrees/45)%8]}   ·   ${Math.round(degrees).toString().padStart(3,'0')}°`;renderer.render(scene,camera)});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 }catch(e){console.error(e);enter.textContent='UNABLE TO START';error.textContent='The 3D scene could not load. Check your internet connection and WebGL support, then refresh.'}
