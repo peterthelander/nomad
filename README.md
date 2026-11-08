@@ -4,7 +4,7 @@ A first-person procedural island explorer built with Three.js. Walk through roll
 
 ## Play online
 
-**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/?v=touch-02)**
+**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/?v=input-03)**
 
 No download or installation needed. Open the link on a phone, tablet, or desktop and select **Enter the wilderness**.
 

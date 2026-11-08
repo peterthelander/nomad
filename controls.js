@@ -1,6 +1,7 @@
 // Input is independent of rendering: touch movement and keyboard movement share axes.
 export function createControls(canvas, onLook) {
-  let touchMode = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  // Capability hints set the initial UI; the actual input selects the controls.
+  let touchMode = matchMedia('(pointer: coarse)').matches;
   document.body.classList.toggle('touch-mode', touchMode);
   const enter = document.querySelector('#enter');
   const error = document.querySelector('#error');
@@ -27,16 +28,24 @@ export function createControls(canvas, onLook) {
     if (document.pointerLockElement === canvas) document.exitPointerLock();
     setPlaying(false);
   }
-  function useTouchControls() {
-    touchMode = true;
-    document.body.classList.add('touch-mode');
+  function setInputMode(useTouch) {
+    touchMode = useTouch;
+    reset();
+    document.body.classList.toggle('touch-mode', touchMode);
     error.textContent = '';
-    document.querySelector('.hint').textContent = 'LEFT THUMB TO MOVE · RIGHT THUMB TO LOOK';
+    document.querySelector('.hint').textContent = touchMode
+      ? 'LEFT THUMB TO MOVE · RIGHT THUMB TO LOOK'
+      : 'CLICK TO EXPLORE · WASD TO MOVE · MOUSE TO LOOK';
   }
-  if (touchMode) useTouchControls();
-  // Detect the actual gesture too: some mobile browser modes report mouse capabilities.
+  function useTouchControls() { setInputMode(true); }
+  setInputMode(touchMode);
+  // Hybrid laptops have both touch and a mouse. Follow the input used to start.
   enter.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') useTouchControls();
+    if (e.pointerType === 'touch') setInputMode(true);
+    else if (e.pointerType === 'mouse' || e.pointerType === 'pen') setInputMode(false);
+  });
+  enter.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') setInputMode(false);
   });
   document.querySelector('#use-touch').addEventListener('click', () => {
     useTouchControls();
