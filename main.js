@@ -1,4 +1,5 @@
-import { createWorld } from './world.js?v=0315ec5a1434';
+import { createAtmosphere } from './atmosphere.js?v=158cea607e0f';
+import { createWorld } from './world.js?v=a35ed567c5f4';
 import { createMultiplayer } from './multiplayer.js?v=e358d27081fb';
 import { MULTIPLAYER_URL } from './config.js?v=0d93ac67fb24';
 import { createControls } from './controls.js?v=a282344236b9';
@@ -9,14 +10,18 @@ try {
     'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js'
   );
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#b5ced0');
-  scene.fog = new THREE.FogExp2('#b5ced0', 0.0025);
+  scene.background = new THREE.Color('#8ecbe8');
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(
+    Math.min(
+      devicePixelRatio,
+      matchMedia('(pointer: coarse)').matches ? 1.5 : 2,
+    ),
+  );
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.05;
   document.body.prepend(renderer.domElement);
   const camera = new THREE.PerspectiveCamera(
     65,
@@ -25,12 +30,15 @@ try {
     1800,
   );
   camera.rotation.order = 'YXZ';
-  scene.add(new THREE.HemisphereLight(0xd4e9ed, 0x6e7050, 2.3));
-  const sun = new THREE.DirectionalLight(0xffdfad, 3);
-  sun.position.set(-180, 240, 80);
-  scene.add(sun);
   const EYE = 2.2;
-  const { ground, water } = createWorld(THREE, scene);
+  const { ground, heightTexture } = createWorld(THREE, scene);
+  const atmosphere = createAtmosphere(
+    THREE,
+    scene,
+    renderer,
+    camera,
+    heightTexture,
+  );
   camera.position.set(165, ground(165, 180) + EYE, 180);
   camera.rotation.set(-0.03, 0.62, 0);
   const controls = createControls(renderer.domElement, (dx, dy) => {
@@ -80,7 +88,7 @@ try {
       }
       camera.position.y = ground(camera.position.x, camera.position.z) + EYE;
     }
-    water.position.y = Math.sin(elapsed * 0.35) * 0.06;
+    atmosphere.update(elapsed);
     positionLabel.textContent = `ELEV. ${Math.round(camera.position.y - EYE)} M`;
     const degrees =
       ((THREE.MathUtils.radToDeg(-camera.rotation.y) % 360) + 360) % 360;

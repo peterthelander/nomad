@@ -460,3 +460,15 @@ canvas {
     top: 120px;
   }
 }
+
+@media (max-width: 650px) {
+  body.playing .eyebrow {
+    display: none;
+  }
+  .top-right {
+    display: none;
+  }
+  header {
+    text-shadow: 0 1px 12px #15363b80;
+  }
+}

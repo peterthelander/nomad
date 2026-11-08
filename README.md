@@ -4,7 +4,7 @@ A first-person procedural island explorer built with Three.js. Walk through roll
 
 ## Play online
 
-**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/?v=multiplayer-04)**
+**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/?v=graphics-06)**
 
 No download or installation needed. Open the link on a phone, tablet, or desktop and select **Enter the wilderness**.
 
@@ -44,7 +44,8 @@ Movement follows the terrain height and stops at the shoreline and world boundar
 - `index.html` — page structure and overlay.
 - `styles.css` — styling.
 - `main.js` — rendering, movement, and application setup.
-- `world.js` — deterministic terrain, ocean, trees, and rocks.
+- `world.js` — deterministic terrain, trees, rocks, and coastal height texture.
+- `atmosphere.js` — gradient sky, procedural clouds, animated ocean, and sunlight/shadows.
 - `controls.js` — desktop and multi-touch input.
 - `multiplayer.js` — shared rooms, avatars, and connection handling.
 - `config.js` — public multiplayer endpoint (no credentials).
