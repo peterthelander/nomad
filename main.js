@@ -1,5 +1,5 @@
 import { createMultiplayer } from './multiplayer.js?v=104f4e613f27';
-import { MULTIPLAYER_URL } from './config.js?v=b9add7126ada';
+import { MULTIPLAYER_URL } from './config.js?v=657f741fd080';
 import { createControls } from './controls.js?v=cef120e16e2e';
 const enter=document.querySelector('#enter'), error=document.querySelector('#error');
 try {

@@ -4,11 +4,11 @@ A first-person procedural island explorer built with Three.js. Walk through roll
 
 ## Play online
 
-**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/?v=input-03)**
+**[Explore Nomad in your browser](https://peterthelander.github.io/nomad/?v=multiplayer-04)**
 
 No download or installation needed. Open the link on a phone, tablet, or desktop and select **Enter the wilderness**.
 
-The site is hosted on GitHub Pages and automatically deploys updates from the `main` branch.
+The site is hosted on GitHub Pages and automatically deploys updates from the `main` branch. Multiplayer is hosted on Cloudflare Workers with one Durable Object per island.
 
 ## Run locally (optional)
 
