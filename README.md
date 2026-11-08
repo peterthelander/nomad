@@ -26,7 +26,7 @@ Open http://localhost:8765 in a browser. Internet access is needed to load Three
 
 - Tap **Enter the wilderness** to start.
 - Drag the left joystick to walk; push farther to move faster.
-- Drag the right half of the screen to look around. Both thumbs work at once.
+- Drag anywhere outside the joystick and buttons to look around. Both thumbs work at once.
 - Tap **Pause** to open the menu. Landscape orientation gives you more room.
 
 ### Desktop
@@ -47,7 +47,8 @@ Movement follows the terrain height and stops at the shoreline and world boundar
 - `world.js` — deterministic terrain, trees, rocks, and coastal height texture.
 - `atmosphere.js` — gradient sky, procedural clouds, animated ocean, and sunlight/shadows.
 - `controls.js` — desktop and multi-touch input.
-- `multiplayer.js` — shared rooms, avatars, and connection handling.
+- `multiplayer.js` — shared rooms and connection handling.
+- `avatars.js` — detailed procedural explorers and articulated walk animation.
 - `config.js` — public multiplayer endpoint (no credentials).
 - `server/` — Cloudflare Worker and per-world Durable Object.
 - `wrangler.jsonc` — deployment configuration.

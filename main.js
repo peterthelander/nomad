@@ -1,8 +1,8 @@
 import { createAtmosphere } from './atmosphere.js?v=158cea607e0f';
 import { createWorld } from './world.js?v=a35ed567c5f4';
-import { createMultiplayer } from './multiplayer.js?v=e358d27081fb';
+import { createMultiplayer } from './multiplayer.js?v=b93a4982ab33';
 import { MULTIPLAYER_URL } from './config.js?v=0d93ac67fb24';
-import { createControls } from './controls.js?v=a282344236b9';
+import { createControls } from './controls.js?v=b96b22685cfc';
 const enter = document.querySelector('#enter'),
   error = document.querySelector('#error');
 try {

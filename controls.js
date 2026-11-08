@@ -39,7 +39,7 @@ export function createControls(canvas, onLook) {
     document.body.classList.toggle('touch-mode', touchMode);
     error.textContent = '';
     document.querySelector('.hint').textContent = touchMode
-      ? 'LEFT THUMB TO MOVE · RIGHT THUMB TO LOOK'
+      ? 'JOYSTICK TO MOVE · DRAG ANYWHERE ELSE TO LOOK'
       : 'CLICK TO EXPLORE · WASD TO MOVE · MOUSE TO LOOK';
   }
   function useTouchControls() {

@@ -1,3 +1,4 @@
+import { createAvatarFactory } from './avatars.js?v=5ee7401ff403';
 export function createMultiplayer({ THREE, scene, camera, ground, endpoint }) {
   const status = document.querySelector('#network-status');
   const roomLabel = document.querySelector('#world-name');
@@ -18,21 +19,8 @@ export function createMultiplayer({ THREE, scene, camera, ground, endpoint }) {
     lastReceive = 0,
     spawned = false;
   let nextHeartbeat = 0;
-  const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.25, 0.8, 6);
-  const headGeometry = new THREE.SphereGeometry(0.22, 8, 6);
-  const legGeometry = new THREE.CylinderGeometry(0.09, 0.09, 0.7, 5);
-  const darkMaterial = new THREE.MeshStandardMaterial({
-    color: '#344644',
-    flatShading: true,
-  });
-  const skinMaterial = new THREE.MeshStandardMaterial({
-    color: '#e9cba0',
-    flatShading: true,
-  });
+  const createAvatar = createAvatarFactory(THREE);
   const targetPosition = new THREE.Vector3();
-  const brimGeometry = new THREE.BoxGeometry(0.48, 0.06, 0.43);
-  const packGeometry = new THREE.BoxGeometry(0.43, 0.58, 0.25);
-  const palette = ['#d6a25d', '#7ca9b0', '#bd8176', '#b6b780', '#a295bd'];
   function hashId(id) {
     return [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 0);
   }
@@ -71,32 +59,14 @@ export function createMultiplayer({ THREE, scene, camera, ground, endpoint }) {
       return;
     let avatar = players.get(p.id);
     if (!avatar) {
-      const group = new THREE.Group();
-      const material = new THREE.MeshStandardMaterial({
-        color: palette[hashId(p.id) % palette.length],
-        flatShading: true,
-      });
-      const body = new THREE.Mesh(bodyGeometry, material);
-      body.position.y = 1.15;
-      const head = new THREE.Mesh(headGeometry, skinMaterial);
-      head.position.y = 1.85;
-      const pack = new THREE.Mesh(packGeometry, darkMaterial);
-      pack.position.set(0, 1.18, 0.33);
-      const legs = [-0.15, 0.15].map((x) => {
-        const leg = new THREE.Mesh(legGeometry, darkMaterial);
-        leg.position.set(x, 0.4, 0);
-        group.add(leg);
-        return leg;
-      });
-      // A small brim makes the facing direction visible.
-      const brim = new THREE.Mesh(brimGeometry, material);
-      brim.position.set(0, 2.02, -0.1);
+      const explorer = createAvatar(p.id);
+      const { group } = explorer;
       const tag = label(p.id);
-      group.add(body, head, pack, brim, tag);
+      group.add(tag);
       scene.add(group);
       group.position.set(p.x, p.y - 2.2, p.z);
       group.rotation.y = p.yaw;
-      avatar = { group, material, brim, tag, legs, target: p };
+      avatar = { ...explorer, tag, target: p };
       players.set(p.id, avatar);
       updateCount();
     }
@@ -106,7 +76,7 @@ export function createMultiplayer({ THREE, scene, camera, ground, endpoint }) {
     const a = players.get(id);
     if (!a) return;
     scene.remove(a.group);
-    a.material.dispose();
+    a.dispose();
     a.tag.material.map.dispose();
     a.tag.material.dispose();
     players.delete(id);
@@ -276,21 +246,22 @@ export function createMultiplayer({ THREE, scene, camera, ground, endpoint }) {
         }
       }
       for (const a of players.values()) {
-        const distance = Math.hypot(
-          a.group.position.x - a.target.x,
-          a.group.position.z - a.target.z,
-        );
         const alpha = 1 - Math.exp(-dt * 12);
         targetPosition.set(a.target.x, a.target.y - 2.2, a.target.z);
+        const previousX = a.group.position.x,
+          previousZ = a.group.position.z;
         a.group.position.lerp(targetPosition, alpha);
         a.group.rotation.y +=
           Math.atan2(
             Math.sin(a.target.yaw - a.group.rotation.y),
             Math.cos(a.target.yaw - a.group.rotation.y),
           ) * alpha;
-        for (let i = 0; i < 2; i++)
-          a.legs[i].rotation.x =
-            distance > 0.08 ? Math.sin(now * 0.012 + i * Math.PI) * 0.35 : 0;
+        const speed =
+          Math.hypot(
+            a.group.position.x - previousX,
+            a.group.position.z - previousZ,
+          ) / Math.max(dt, 0.001);
+        a.animate(dt, speed);
       }
     },
   };
